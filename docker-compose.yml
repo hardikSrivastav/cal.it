@@ -1,0 +1,51 @@
+version: '3.8'
+
+services:
+  calorie-bot:
+    build: .
+    container_name: calorie-tracking-bot
+    restart: unless-stopped
+    environment:
+      # Telegram Bot Token
+      - TELEGRAM_TOKEN=${TELEGRAM_TOKEN}
+      
+      # Notion Integration
+      - NOTION_TOKEN=${NOTION_TOKEN}
+      - NOTION_DATABASE_ID=${NOTION_DATABASE_ID}
+      
+      # AWS Bedrock (for AI parsing)
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION:-us-east-1}
+      
+      # Web Search (Exa)
+      - EXA_API_KEY=${EXA_API_KEY}
+      
+      # Optional: Nutrition APIs (fallbacks)
+      - NUTRITIONIX_APP_ID=${NUTRITIONIX_APP_ID}
+      - NUTRITIONIX_APP_KEY=${NUTRITIONIX_APP_KEY}
+      - USDA_API_KEY=${USDA_API_KEY}
+      
+      # Logging
+      - PYTHONUNBUFFERED=1
+      - LOG_LEVEL=INFO
+    ports:
+      - "7500:7500"
+    volumes:
+      # Optional: Mount logs directory for persistence
+      - ./logs:/app/logs
+    networks:
+      - bot-network
+    healthcheck:
+      test: ["CMD", "python", "-c", "import requests; requests.get('https://api.telegram.org/bot${TELEGRAM_TOKEN}/getMe')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+networks:
+  bot-network:
+    driver: bridge
+
+volumes:
+  logs: 

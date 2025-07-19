@@ -1,0 +1,104 @@
+version: '3.8'
+
+services:
+  calorie-bot:
+    build: .
+    container_name: calorie-tracking-bot-prod
+    restart: unless-stopped
+    environment:
+      # Telegram Bot Token
+      - TELEGRAM_TOKEN=${TELEGRAM_TOKEN}
+      
+      # Notion Integration
+      - NOTION_TOKEN=${NOTION_TOKEN}
+      - NOTION_DATABASE_ID=${NOTION_DATABASE_ID}
+      
+      # AWS Bedrock (for AI parsing)
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION:-us-east-1}
+      
+      # Web Search (Exa)
+      - EXA_API_KEY=${EXA_API_KEY}
+      
+      # Optional: Nutrition APIs (fallbacks)
+      - NUTRITIONIX_APP_ID=${NUTRITIONIX_APP_ID}
+      - NUTRITIONIX_APP_KEY=${NUTRITIONIX_APP_KEY}
+      - USDA_API_KEY=${USDA_API_KEY}
+      
+      # Production settings
+      - PYTHONUNBUFFERED=1
+      - LOG_LEVEL=WARNING
+      - PYTHONDONTWRITEBYTECODE=1
+    ports:
+      - "7500:7500"
+    volumes:
+      # Mount logs directory for persistence
+      - ./logs:/app/logs
+      # Mount config for easy updates
+      - ./config:/app/config:ro
+    networks:
+      - bot-network
+    healthcheck:
+      test: ["CMD", "python", "-c", "import requests; requests.get('https://api.telegram.org/bot${TELEGRAM_TOKEN}/getMe')"]
+      interval: 60s
+      timeout: 15s
+      retries: 5
+      start_period: 60s
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '0.5'
+        reservations:
+          memory: 256M
+          cpus: '0.25'
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # Optional: Add monitoring with Prometheus/Grafana
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: calorie-bot-prometheus
+    restart: unless-stopped
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=200h'
+      - '--web.enable-lifecycle'
+    networks:
+      - bot-network
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: calorie-bot-grafana
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:-admin}
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./monitoring/grafana/dashboards:/etc/grafana/provisioning/dashboards:ro
+      - ./monitoring/grafana/datasources:/etc/grafana/provisioning/datasources:ro
+    networks:
+      - bot-network
+
+networks:
+  bot-network:
+    driver: bridge
+
+volumes:
+  logs:
+  prometheus_data:
+  grafana_data: 

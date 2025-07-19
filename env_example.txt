@@ -1,0 +1,20 @@
+# Telegram Bot Configuration
+TELEGRAM_TOKEN=your_telegram_bot_token_here
+
+# Notion Configuration
+NOTION_TOKEN=your_notion_internal_integration_token_here
+NOTION_DATABASE_ID=your_notion_database_id_here
+
+# AWS Bedrock Configuration (Required for AI food parsing)
+AWS_ACCESS_KEY_ID=your_aws_access_key_id_here
+AWS_SECRET_ACCESS_KEY=your_aws_secret_access_key_here
+AWS_REGION=us-east-1
+BEDROCK_MODEL_ID=anthropic.claude-3-sonnet-20240229-v1:0
+
+# Exa Web Search Configuration (Recommended for enhanced nutrition lookup)
+EXA_API_KEY=your_exa_api_key_here
+
+# Nutrition API Keys (Optional - for fallback nutrition data)
+USDA_API_KEY=your_usda_api_key_here
+NUTRITIONIX_APP_ID=your_nutritionix_app_id_here
+NUTRITIONIX_APP_KEY=your_nutritionix_app_key_here 
