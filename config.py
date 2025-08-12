@@ -4,11 +4,11 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # Telegram Bot Configuration
-TELEGRAM_TOKEN = "8196941788:AAFvmvxxgXoFunshnuNmu0r1gUu_OyMI2WE"
+TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
 
 # Notion Configuration
-NOTION_TOKEN = "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"
-NOTION_DATABASE_ID = "23472f8c63128063af54eba9b26ecc1f"
+NOTION_TOKEN = os.getenv("NOTION_TOKEN")
+NOTION_DATABASE_ID = os.getenv("NOTION_DATABASE_ID")
 
 # AWS Bedrock Configuration
 AWS_ACCESS_KEY_ID = os.getenv("AWS_ACCESS_KEY_ID")
